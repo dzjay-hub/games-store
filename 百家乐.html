@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>百家乐游戏</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(to bottom right, #1e1e1e, #4d4d4d);
+        font-family: sans-serif;
+        user-select: none;
+        color: #fff;
+    }
+
+    h1 {
+        text-align: center;
+        padding: 20px 0;
+        margin: 0;
+        font-size: 36px;
+        color: #fff;
+        text-shadow: 1px 1px 3px #000;
+    }
+
+    #mainContainer {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+        margin: 20px;
+    }
+
+    #gameArea {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-right: 20px;
+    }
+
+    #scoreBoard {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    #scoreBoard span {
+        margin: 0 10px;
+    }
+
+    #winCountArea {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    #winCountArea span {
+        margin: 0 10px;
+    }
+
+    #message {
+        text-align: center;
+        font-size: 20px;
+        margin: 10px 0;
+        color: #fff;
+    }
+
+    .handArea {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .hand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 20px;
+    }
+
+    .hand h2 {
+        margin-bottom: 10px;
+        font-size: 24px;
+        color: #fff;
+    }
+
+    .cards {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .card {
+        width: 60px;
+        height: 90px;
+        background: #fafafa;
+        color: #000;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 5px;
+        font-weight: bold;
+        font-size: 18px;
+        position: relative;
+    }
+
+    #controls {
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    button {
+        background: #2ecc71;
+        color: #fff;
+        border: none;
+        padding: 5px 10px;
+        margin: 5px;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    button:hover {
+        background: #27ae60;
+    }
+
+    #betArea {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    #betArea table {
+        margin: 0 auto;
+        border-collapse: collapse;
+    }
+
+    #betArea th, #betArea td {
+        border: 1px solid #ccc;
+        padding: 5px 10px;
+        font-size: 14px;
+        color: #fff;
+    }
+
+    #historyArea {
+        width: 600px;
+        background: rgba(0,0,0,0.5);
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        overflow-x: auto;
+        margin-bottom: 20px;
+    }
+
+    #historyArea h2 {
+        text-align: center;
+        margin: 0;
+        margin-bottom: 10px;
+        font-size: 20px;
+    }
+
+    #historyTable {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    #historyTable th, #historyTable td {
+        border: 1px solid #fff;
+        padding: 5px;
+        text-align: center;
+        font-size: 14px;
+        color: #fff;
+        white-space: nowrap;
+    }
+
+    #historyTable th {
+        background: #333;
+    }
+
+    #autoPlayControl {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #fff;
+    }
+
+    #autoPlayControl input {
+        width: 60px;
+        text-align: center;
+    }
+
+    #endGameArea {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    #endGameArea a {
+        display: inline-block;
+        margin-left: 10px;
+        background: #3498db;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 5px;
+        text-decoration: none;
+    }
+
+    #endGameArea a:hover {
+        background: #2980b9;
+    }
+</style>
+</head>
+<body>
+<h1>百家乐</h1>
+<div id="mainContainer">
+    <div id="gameArea">
+        <div id="scoreBoard">
+            <span>筹码：<strong id="chipsDisplay">1000</strong></span>
+        </div>
+        <div id="winCountArea">
+            <span>闲家胜次数：<strong id="playerWinCount">0</strong></span>
+            <span>庄家胜次数：<strong id="bankerWinCount">0</strong></span>
+            <span>和局次数：<strong id="tieWinCount">0</strong></span>
+        </div>
+        <div id="autoPlayControl">
+            <span>一次性进行场数:</span>
+            <input type="number" id="autoRoundsInput" value="1" min="1" />
+            <button id="autoPlayBtn">开始自动进行</button>
+        </div>
+        <div id="betArea">
+            <table>
+                <tr>
+                    <th>类型</th>
+                    <th>下注额</th>
+                    <th>操作</th>
+                </tr>
+                <tr>
+                    <td>闲家</td>
+                    <td><strong id="betPlayerDisplay">100</strong></td>
+                    <td>
+                        <button data-bettype="player" data-action="increase">+50</button>
+                        <button data-bettype="player" data-action="decrease">-50</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>庄家</td>
+                    <td><strong id="betBankerDisplay">0</strong></td>
+                    <td>
+                        <button data-bettype="banker" data-action="increase">+50</button>
+                        <button data-bettype="banker" data-action="decrease">-50</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>和局</td>
+                    <td><strong id="betTieDisplay">0</strong></td>
+                    <td>
+                        <button data-bettype="tie" data-action="increase">+50</button>
+                        <button data-bettype="tie" data-action="decrease">-50</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="message">点击发牌开始游戏</div>
+        <div class="handArea">
+            <div class="hand" id="playerHandDiv">
+                <h2>闲家</h2>
+                <div class="cards" id="playerCards"></div>
+            </div>
+            <div class="hand" id="bankerHandDiv">
+                <h2>庄家</h2>
+                <div class="cards" id="bankerCards"></div>
+            </div>
+        </div>
+        <div id="controls">
+            <button id="dealBtn">发牌</button>
+        </div>
+        <div id="endGameArea">
+            <button id="endGameBtn">结束游戏</button>
+            <a id="downloadLink" style="display:none;">下载记录(Excel)</a>
+        </div>
+    </div>
+    <div id="historyArea">
+        <h2>历史记录</h2>
+        <table id="historyTable">
+            <tr>
+                <th>局号</th>
+                <th>结果</th>
+                <th>闲家牌(点数)</th>
+                <th>庄家牌(点数)</th>
+            </tr>
+        </table>
+    </div>
+</div>
+<script>
+(function(){
+    let suits = ['♠','♥','♣','♦'];
+    let values = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+
+    let deck = [];
+    let playerHand = [];
+    let bankerHand = [];
+
+    let chips = 1000;
+    let betPlayer = 100;
+    let betBanker = 0;
+    let betTie = 0;
+
+    let gameOver = true;
+    let roundNumber = 0;
+    let historyData = [];
+
+    let autoPlayRounds = 1;
+    let autoPlayRemaining = 0;
+
+    let playerWinCount = 0;
+    let bankerWinCount = 0;
+    let tieWinCount = 0;
+
+    const chipsDisplay = document.getElementById('chipsDisplay');
+    const playerCardsDiv = document.getElementById('playerCards');
+    const bankerCardsDiv = document.getElementById('bankerCards');
+    const messageDiv = document.getElementById('message');
+    const dealBtn = document.getElementById('dealBtn');
+
+    const betPlayerDisplay = document.getElementById('betPlayerDisplay');
+    const betBankerDisplay = document.getElementById('betBankerDisplay');
+    const betTieDisplay = document.getElementById('betTieDisplay');
+
+    const historyTable = document.getElementById('historyTable');
+    const autoRoundsInput = document.getElementById('autoRoundsInput');
+    const autoPlayBtn = document.getElementById('autoPlayBtn');
+
+    const playerWinCountDisplay = document.getElementById('playerWinCount');
+    const bankerWinCountDisplay = document.getElementById('bankerWinCount');
+    const tieWinCountDisplay = document.getElementById('tieWinCount');
+
+    const endGameBtn = document.getElementById('endGameBtn');
+    const downloadLink = document.getElementById('downloadLink');
+
+    function createDeck() {
+        deck = [];
+        // 8副牌，共416张
+        for (let d = 0; d < 8; d++) {
+            for (let s of suits) {
+                for (let v of values) {
+                    deck.push({suit:s, value:v});
+                }
+            }
+        }
+    }
+
+    function shuffleDeck() {
+        for (let i = 0; i < deck.length; i++) {
+            let swapIdx = Math.floor(Math.random() * deck.length);
+            [deck[i], deck[swapIdx]] = [deck[swapIdx], deck[i]];
+        }
+    }
+
+    function getCardValue(card) {
+        if (card.value === 'A') return 1;
+        if (['10','J','Q','K'].includes(card.value)) return 0;
+        return parseInt(card.value);
+    }
+
+    function getHandValue(hand) {
+        let total = 0;
+        for (let c of hand) {
+            total += getCardValue(c);
+        }
+        return total % 10;
+    }
+
+    function dealCards() {
+        playerHand = [deck.pop(), deck.pop()];
+        bankerHand = [deck.pop(), deck.pop()];
+    }
+
+    function updateUI() {
+        chipsDisplay.textContent = chips;
+        betPlayerDisplay.textContent = betPlayer;
+        betBankerDisplay.textContent = betBanker;
+        betTieDisplay.textContent = betTie;
+
+        playerWinCountDisplay.textContent = playerWinCount;
+        bankerWinCountDisplay.textContent = bankerWinCount;
+        tieWinCountDisplay.textContent = tieWinCount;
+
+        playerCardsDiv.innerHTML = '';
+        bankerCardsDiv.innerHTML = '';
+
+        for (let c of playerHand) {
+            let div = document.createElement('div');
+            div.className = 'card';
+            div.textContent = c.value + c.suit;
+            playerCardsDiv.appendChild(div);
+        }
+
+        for (let c of bankerHand) {
+            let div = document.createElement('div');
+            div.className = 'card';
+            div.textContent = c.value + c.suit;
+            bankerCardsDiv.appendChild(div);
+        }
+    }
+
+    function playerNeedsThirdCard() {
+        let val = getHandValue(playerHand);
+        return val <= 5;
+    }
+
+    function bankerShouldDraw(playerThirdCardValue) {
+        let bankerValue = getHandValue(bankerHand);
+        if (playerThirdCardValue === null) {
+            if (bankerValue <=5) return true;
+            return false;
+        }
+        if (bankerValue <= 2) return true;
+        if (bankerValue === 3 && playerThirdCardValue !== 8) return true;
+        if (bankerValue === 4 && playerThirdCardValue >= 2 && playerThirdCardValue <= 7) return true;
+        if (bankerValue === 5 && playerThirdCardValue >= 4 && playerThirdCardValue <= 7) return true;
+        if (bankerValue === 6 && (playerThirdCardValue === 6 || playerThirdCardValue === 7)) return true;
+        return false;
+    }
+
+    function checkNatural() {
+        let p = getHandValue(playerHand);
+        let b = getHandValue(bankerHand);
+        return (p >= 8 || b >= 8);
+    }
+
+    function playRound() {
+        let totalBet = betPlayer + betBanker + betTie;
+        if (totalBet > chips) {
+            messageDiv.textContent = "总下注额超过了你的筹码！请减少下注。";
+            dealBtn.disabled = false;
+            gameOver = true;
+            autoPlayRemaining = 0; 
+            return;
+        }
+
+        createDeck();
+        shuffleDeck();
+        dealCards();
+        updateUI();
+
+        chips -= totalBet;
+        messageDiv.textContent = "处理中...";
+        
+        if (checkNatural()) {
+            endRound();
+            return;
+        }
+
+        let playerThirdCardValue = null;
+        if (playerNeedsThirdCard()) {
+            let thirdCard = deck.pop();
+            playerHand.push(thirdCard);
+            playerThirdCardValue = getCardValue(thirdCard);
+        }
+
+        if (bankerShouldDraw(playerThirdCardValue)) {
+            bankerHand.push(deck.pop());
+        }
+
+        endRound();
+    }
+
+    function endRound() {
+        updateUI();
+        let playerValue = getHandValue(playerHand);
+        let bankerValue = getHandValue(bankerHand);
+        let result = '';
+        if (playerValue > bankerValue) {
+            result = 'player';
+            playerWinCount++;
+        } else if (playerValue < bankerValue) {
+            result = 'banker';
+            bankerWinCount++;
+        } else {
+            result = 'tie';
+            tieWinCount++;
+        }
+
+        let totalBet = betPlayer + betBanker + betTie;
+        let totalWin = 0;
+        if (result === 'player' && betPlayer > 0) {
+            totalWin += betPlayer * 2; 
+        }
+        if (result === 'banker' && betBanker > 0) {
+            let winAmount = Math.floor(betBanker * 1.95);
+            totalWin += winAmount;
+        }
+        if (result === 'tie' && betTie > 0) {
+            totalWin += betTie * 9;
+        }
+
+        chips += totalWin;
+
+        let profit = totalWin - totalBet;
+        let resultText = (result === 'player')?'闲家胜':(result === 'banker')?'庄家胜':'和局';
+
+        if (totalBet === 0) {
+            messageDiv.textContent = resultText + "，你没有下注。";
+        } else {
+            if (profit > 0) {
+                messageDiv.textContent = resultText + "，你赢了" + profit + "！";
+            } else if (profit < 0) {
+                messageDiv.textContent = resultText + "，你输了" + (-profit) + "！";
+            } else {
+                messageDiv.textContent = resultText + "，打和，你的筹码没有变化。";
+            }
+        }
+
+        gameOver = true;
+        dealBtn.disabled = false;
+
+        roundNumber++;
+        historyData.push({
+            round: roundNumber, 
+            result: result,
+            playerCards: playerHand.slice(), 
+            bankerCards: bankerHand.slice(),
+            playerPoints: playerValue,
+            bankerPoints: bankerValue
+        });
+        updateHistoryTable();
+        updateUI();
+
+        // 若有自动场次，继续下一局
+        if (autoPlayRemaining > 0 && chips > 0) {
+            autoPlayRemaining--;
+            if (autoPlayRemaining > 0) {
+                setTimeout(startRound, 500);
+            }
+        } else {
+            autoPlayRemaining = 0;
+        }
+    }
+
+    function formatHand(hand, points) {
+        let cardStr = hand.map(c => c.value + c.suit).join(' ');
+        return cardStr + " (点" + points + ")";
+    }
+
+    function updateHistoryTable() {
+        while (historyTable.rows.length > 1) {
+            historyTable.deleteRow(1);
+        }
+        for (let h of historyData) {
+            let row = historyTable.insertRow();
+            let cellRound = row.insertCell();
+            let cellResult = row.insertCell();
+            let cellPlayer = row.insertCell();
+            let cellBanker = row.insertCell();
+
+            cellRound.textContent = h.round;
+            cellResult.textContent = (h.result === 'player' ? '闲' : h.result === 'banker' ? '庄' : '和');
+            cellPlayer.textContent = formatHand(h.playerCards, h.playerPoints);
+            cellBanker.textContent = formatHand(h.bankerCards, h.bankerPoints);
+        }
+    }
+
+    function startRound() {
+        if (!gameOver) return;
+        if (chips <= 0) {
+            messageDiv.textContent = "你没有足够的筹码！";
+            autoPlayRemaining = 0;
+            return;
+        }
+        gameOver = false;
+        dealBtn.disabled = true;
+        playRound();
+    }
+
+    document.getElementById('dealBtn').addEventListener('click', function(){
+        if (!gameOver) return;
+        autoPlayRemaining = 0;
+        startRound();
+    });
+
+    document.querySelectorAll('#betArea button[data-bettype]').forEach(btn => {
+        btn.addEventListener('click', function(){
+            let type = this.getAttribute('data-bettype');
+            let action = this.getAttribute('data-action');
+            let change = (action === 'increase') ? 50 : -50;
+
+            if (type === 'player') {
+                betPlayer += change;
+                if (betPlayer < 0) betPlayer = 0;
+            } else if (type === 'banker') {
+                betBanker += change;
+                if (betBanker < 0) betBanker = 0;
+            } else if (type === 'tie') {
+                betTie += change;
+                if (betTie < 0) betTie = 0;
+            }
+            updateUI();
+        });
+    });
+
+    autoPlayBtn.addEventListener('click', function(){
+        if (!gameOver) return; 
+        let rounds = parseInt(autoRoundsInput.value,10);
+        if (isNaN(rounds) || rounds < 1) {
+            messageDiv.textContent = "请输入有效的场数";
+            return;
+        }
+        autoPlayRemaining = rounds;
+        startRound();
+    });
+
+    endGameBtn.addEventListener('click', function(){
+        // 用户结束游戏时，生成csv文件并提供下载链接
+        // CSV格式：局号,结果,闲家牌(点数),庄家牌(点数),当前筹码,闲胜次数,庄胜次数,和局次数
+        let csvContent = "data:text/csv;charset=utf-8,"
+            + "局号,结果,闲家牌(点数),庄家牌(点数),结束时筹码,闲胜次数,庄胜次数,和局次数\r\n";
+        for (let h of historyData) {
+            let resultText = (h.result === 'player')?'闲家胜':(h.result === 'banker')?'庄家胜':'和局';
+            let playerText = formatHand(h.playerCards, h.playerPoints);
+            let bankerText = formatHand(h.bankerCards, h.bankerPoints);
+            csvContent += [
+                h.round,
+                resultText,
+                playerText.replace(/,/g," "), 
+                bankerText.replace(/,/g," "),
+                chips,
+                playerWinCount,
+                bankerWinCount,
+                tieWinCount
+            ].join(",") + "\r\n";
+        }
+
+        // 若没有任何记录，也生成一行标题
+        if (historyData.length === 0) {
+            csvContent = "data:text/csv;charset=utf-8,局号,结果,闲家牌(点数),庄家牌(点数),结束时筹码,闲胜次数,庄胜次数,和局次数\r\n" 
+                + "无记录,,,,," + chips + "," + playerWinCount + "," + bankerWinCount + "," + tieWinCount;
+        }
+
+        let encodedUri = encodeURI(csvContent);
+        downloadLink.href = encodedUri;
+        downloadLink.setAttribute("download", "游戏记录.csv");
+        downloadLink.style.display = "inline-block";
+        messageDiv.textContent = "游戏已结束，可下载记录。";
+    });
+
+    updateUI();
+})();
+</script>
+</body>
+</html>
